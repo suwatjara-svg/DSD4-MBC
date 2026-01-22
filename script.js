@@ -1,5 +1,5 @@
 async function callGeminiAPI(prompt) {
-    const apiKey = CONFIG.GEMINI_KEY;
+    const apiKey = "AIzaSyBgT3gDoWcNkoGgU0SI1eId-bpsnULMg5c";
     
     // รายชื่อโมเดลที่เรียงจากตัวที่โควต้าน่าจะเยอะที่สุดไปหาน้อย
     const models = [
