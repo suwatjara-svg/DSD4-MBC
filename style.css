@@ -259,7 +259,7 @@ textarea:focus {
 .side-controls {
     position: fixed;
     left: 2px;
-    top: 25%;
+    top: 20%;
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;

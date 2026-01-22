@@ -9,10 +9,7 @@
 </head>
 <body>
 
-  <div class="side-controls">
-    <button class="btn secondary" onclick="generateSuggestions()">
-      <span>💡</span> ข้อแนะนำ
-    </button>
+  <div class="side-controls">    
     <button class="btn outline" onclick="exportImage()"><span>🖼️</span> Export รูป </button>   
   </div>
 
@@ -90,6 +87,9 @@
         แนวทางพัฒนาโมเดลธุรกิจให้เหมาะกับบริบทชุมชน โรงงาน และผู้เรียนสายอาชีพ
       </p>
       <textarea id="suggestionResult" class="suggestion-box" placeholder="ผลลัพธ์คำแนะนำจะแสดงที่นี่..." rows="15"></textarea>
+       <div class="button-row">
+        <button class="btn primary" onclick="generateSuggestions()"><span>💡</span> ข้อแนะนำ</button>
+      </div>
     </section>
 
   </main>
