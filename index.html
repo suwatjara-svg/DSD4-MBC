@@ -4,19 +4,22 @@
   <meta charset="UTF-8">
   <title>Business Model Intelligence Design</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#5b2c83">
-
-  <link rel="stylesheet" href="style.css">
+  
+  <link rel="stylesheet" href="style.css?v=1.1">
 </head>
 <body>
-  <!-- Header -->
+
+  <div class="side-controls">
+    <button class="btn secondary" onclick="generateSuggestions()">
+      <span>💡</span> ข้อแนะนำ
+    </button>
+    <button class="btn outline" onclick="exportImage()"><span>🖼️</span> Export รูป </button>   
+  </div>
+
   <header class="main-header">
     <div class="header-inner">
       <div class="logo-block">
-        <img src="Images\logodsd.png" alt="DSD Logo" class="logo-img" style="width:150px; height:100%; object-fit:cover; border-radius:8px; margin-bottom:12px;">
+        <img src="Images/logodsd.png" alt="DSD Logo" class="logo-img" style="width:150px; height:auto; border-radius:8px; margin-bottom:12px;">
         <div class="logo-text">
           <div class="org-name">สถาบันพัฒนาฝีมือแรงงาน 4 ราชบุรี</div>
           <div class="system-name">ระบบอัจฉริยะออกแบบโมเดลธุรกิจ (Business Model Intelligence Design)</div>
@@ -25,9 +28,8 @@
     </div>
   </header>
 
-  <!-- Main content -->
   <main class="main-container">
-    <!-- Card: Input BMC -->
+    
     <section class="card">
       <h2>Business Model Canvas (BMC) Generator</h2>
       <p class="card-subtitle">
@@ -39,119 +41,73 @@
           <label for="bizName"><strong>ชื่อธุรกิจ</strong></label>
           <input id="bizName" type="text" placeholder="เช่น - ช่างถึงบ้าน สุวัฒน์จัดให้">
         </div>
-
         <div class="form-group">
           <label for="bizOwner"><strong>ช่างเอนกประสงค์ / ผู้ออกแบบ</strong></label>
           <input id="bizOwner" type="text" placeholder="เช่น นายสุวัฒน์ เจริญพิบูลย์">
         </div>
       </div>      
 
-  <div class="form-group">
-    <label for="basicInfo"><strong>รายละเอียดเบื้องต้นของธุรกิจ</strong></label>
-    <textarea id="basicInfo" rows="10"></textarea>
-  </div>
-
-  <script>
-    document.getElementById("basicInfo").placeholder =
-"- กลุ่มลูกค้าเป้าหมายคือคนในชุมชนและโรงงานใกล้เคียง\n- จุดเด่นคือใช้วัตถุดิบท้องถิ่น ราคาย่อมเยา\n- มีบริการส่งถึงสถานประกอบการ\n- ต้องการสร้างรายได้เสริมให้คนในชุมชน";
-  </script>
+      <div class="form-group">
+        <label for="basicInfo"><strong>รายละเอียดเบื้องต้นของธุรกิจ</strong></label>
+        <textarea id="basicInfo" rows="10" placeholder="- กลุ่มลูกค้าเป้าหมายคือคนในชุมชนและโรงงานใกล้เคียง&#10;- จุดเด่นคือใช้วัตถุดิบท้องถิ่น ราคาย่อมเยา&#10;- มีบริการส่งถึงสถานประกอบการ&#10;- ต้องการสร้างรายได้เสริมให้คนในชุมชน"></textarea>
+      </div>
 
       <div class="button-row">
         <button class="btn primary" onclick="generateAI()">สร้างโมเดลด้วย AI</button>
-        <button class="btn secondary" onclick="generateSuggestions()">Smart Suggestion สำหรับผู้ประกอบการ</button>
-        <button class="btn outline" onclick="exportPDF()">Export เป็น PDF</button>
       </div>
-
       <p id="statusMessage" class="status-message"></p>
     </section>
 
-    <!-- Card: Smart Suggestions -->
+    <section class="bmc-canvas">
+      <div class="bmc-title">Business Model Canvas<br><span>โมเดลธุรกิจ</span></div>
+
+      <div class="bmc-header">
+        <div><label>ชื่อร้าน</label><input type="text" id="display-bizName"></div>
+        <div><label>ชื่อ – นามสกุล</label><input type="text" id="display-bizOwner"></div>
+        <div><label>วันที่</label><input type="date" id="bizDate"></div>
+      </div>
+
+      <div class="bmc-grid">
+        <div class="bmc-box" style="grid-area: partners;"><h3>Key Partners</h3><textarea id="bmc-key-partners"></textarea></div>
+        <div class="bmc-box" style="grid-area: activities;"><h3>Key Activities</h3><textarea id="bmc-key-activities"></textarea></div>
+        <div class="bmc-box" style="grid-area: resources;"><h3>Key Resources</h3><textarea id="bmc-key-resources"></textarea></div>
+        <div class="bmc-box" style="grid-area: value;"><h3>Value Propositions</h3><textarea id="bmc-value-propositions"></textarea></div>
+        <div class="bmc-box" style="grid-area: relationships;"><h3>Customer Relationships</h3><textarea id="bmc-customer-relationships"></textarea></div>
+        <div class="bmc-box" style="grid-area: channels;"><h3>Channels</h3><textarea id="bmc-channels"></textarea></div>
+        <div class="bmc-box" style="grid-area: segments;"><h3>Customer Segments</h3><textarea id="bmc-customer-segments"></textarea></div>
+        <div class="bmc-box" style="grid-area: cost;"><h3>Cost Structure</h3><textarea id="bmc-cost-structure"></textarea></div>
+        <div class="bmc-box" style="grid-area: revenue;"><h3>Revenue Streams</h3><textarea id="bmc-revenue-streams"></textarea></div>
+      </div>
+
+      <div class="bmc-footer">
+        <strong>สถาบันพัฒนาฝีมือแรงงาน 4 ราชบุรี</strong>
+      </div>
+    </section>
+
     <section class="card">
       <h2>Smart Suggestion สำหรับผู้ประกอบการในชุมชน</h2>
       <p class="card-subtitle">
-        ระบบจะช่วยเสนอแนวทางพัฒนาโมเดลธุรกิจให้เหมาะกับบริบทชุมชน โรงงาน และผู้เรียนสายอาชีพ
+        แนวทางพัฒนาโมเดลธุรกิจให้เหมาะกับบริบทชุมชน โรงงาน และผู้เรียนสายอาชีพ
       </p>
-      <textarea id="suggestionResult" class="suggestion-box" placeholder="ผลลัพธ์คำแนะนำเชิงกลยุทธ์จะแสดงที่นี่..." rows="5"></textarea>
+      <textarea id="suggestionResult" class="suggestion-box" placeholder="ผลลัพธ์คำแนะนำจะแสดงที่นี่..." rows="15"></textarea>
     </section>
 
-    <!-- Card: BMC Table -->
-     <section class="bmc-canvas">
-  <div class="bmc-title">Business Model Canvas<br><span>โมเดลธุรกิจ</span></div>
-
-  <div class="bmc-header">
-    <div><label>ชื่อร้าน</label><input type="text" id="bizName"></div>
-    <div><label>ชื่อ – นามสกุล</label><input type="text" id="bizOwner"></div>
-    <div><label>วันที่</label><input type="date" id="bizDate"></div>
-  </div>
-
-  <div class="bmc-grid">
-  <div class="bmc-box" style="grid-area: partners;">
-    <h3>Key Partners ผู้ร่วมงานหลัก</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: activities;">
-    <h3>Key Activities ภารกิจหลัก</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: resources;">
-    <h3>Key Resources ทรัพยากรหลัก</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: value;">
-    <h3>Value Propositions คุณค่าของสินค้า/บริการ</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: relationships;">
-    <h3>Customer Relationships ความสัมพันธ์กับลูกค้า</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: channels;">
-    <h3>Channels ช่องทางเข้าถึงลูกค้า</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: segments;">
-    <h3>Customer Segments กลุ่มลูกค้า</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: cost;">
-    <h3>Cost Structure รายจ่าย / ต้นทุน</h3>
-    <textarea></textarea>
-  </div>
-
-  <div class="bmc-box" style="grid-area: revenue;">
-    <h3>Revenue Streams รายรับ</h3>
-    <textarea></textarea>
-  </div>
-</div>
-
-  <div class="bmc-footer">
-    <strong>สถาบันพัฒนาฝีมือแรงงาน 4 ราชบุรี</strong>
-  </div>
-</section>
   </main>
 
-  <!-- Footer -->
   <footer class="main-footer">
-    <div class="footer-inner">
-      © สถาบันพัฒนาฝีมือแรงงาน 4 ราชบุรี · Business Model Intelligence Design
+    <div class="footer-inner profile-layout">
+      <img src="Images/profile.jpg" alt="รูปสุวัฒน์" class="profile-img">
+      <div class="profile-info">
+        <p><strong>นายสุวัฒน์ เจริญพิบูลย์</strong></p>
+        <p>นักวิชาการพัฒนาฝีมือแรงงานชำนาญการ</p>
+        <p>Email: suwat.jara@gmail.com</p>
+        <p>© สถาบันพัฒนาฝีมือแรงงาน 4 ราชบุรี</p>
+      </div>
     </div>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="script.js"></script>
-
-  <script>
-    // Register Service Worker (PWA)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js?v=2.1"></script>
 </body>
 </html>

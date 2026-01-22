@@ -1,172 +1,195 @@
 async function callGeminiAPI(prompt) {
-  const apiKey = "AIzaSyC2iHpd40LjJMVB6BYday7d_C5bpFbwX08"; // แก้ตรงนี้
-  if (!apiKey || apiKey === "YOUR_GEMINI_API_KEY") {
-    // ถ้าไม่มี API Key ให้คืนข้อความจำลอง
-    return "ยังไม่ได้ตั้งค่า API Key จะใช้ข้อความจำลองแทน\n\n- ตัวอย่างคำแนะนำสำหรับผู้ประกอบการในชุมชน...";
-  }
+    const apiKey = CONFIG.GEMINI_KEY;
+    
+    // รายชื่อโมเดลที่เรียงจากตัวที่โควต้าน่าจะเยอะที่สุดไปหาน้อย
+    const models = [
+        "gemini-flash-lite-latest", // ตัวเลือกที่ 1 (แนะนำ)
+        "gemini-flash-latest",      // ตัวเลือกที่ 2 (สำรอง)
+        "gemini-2.0-flash-lite"     // ตัวเลือกที่ 3
+    ];
 
-  const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
+    for (let model of models) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                return data.candidates[0].content.parts[0].text;
+            }
+
+            // ถ้าเจอ Error 429 (Quota เต็ม) ให้ข้ามไปลอง model ตัวถัดไปใน List
+            if (res.status === 429) {
+                console.warn(`Model ${model} quota full, trying next...`);
+                continue; 
+            }
+
+            throw new Error(data.error.message);
+
+        } catch (err) {
+            console.error(`Error with ${model}:`, err);
+            if (model === models[models.length - 1]) throw err; // ถ้าเป็นตัวสุดท้ายแล้วยังพัง ให้พังเลย
+        }
     }
-  );
-
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }
 
 async function generateAI() {
-  const bizName = document.getElementById("bizName").value.trim();
-  const bizOwner = document.getElementById("bizOwner").value.trim();
-  const basicInfo = document.getElementById("basicInfo").value.trim();
-  const status = document.getElementById("statusMessage");
+    const bizNameInput = document.getElementById("bizName");
+    const bizOwnerInput = document.getElementById("bizOwner");
+    const basicInfoInput = document.getElementById("basicInfo");
+    const status = document.getElementById("statusMessage");
 
-  status.textContent = "กำลังสร้างโมเดลธุรกิจด้วย AI กรุณารอสักครู่...";
+    const bizName = bizNameInput ? bizNameInput.value.trim() : "";
+    const bizOwner = bizOwnerInput ? bizOwnerInput.value.trim() : "";
+    const basicInfo = basicInfoInput ? basicInfoInput.value.trim() : "";
 
-  const prompt = `
-คุณคือผู้เชี่ยวชาญด้าน Business Model Canvas ช่วยออกแบบ BMC จากข้อมูลต่อไปนี้:
-
-ชื่อธุรกิจ: ${bizName || "-"}
-ผู้รับผิดชอบ/ช่างเอนกประสงค์: ${bizOwner || "-"}
-รายละเอียดเบื้องต้น:
-${basicInfo || "-"}
-
-ให้ตอบเป็น JSON ภาษาไทย ในรูปแบบ:
-{
-  "Key Partners": "",
-  "Key Activities": "",
-  "Key Resources": "",
-  "Value Propositions": "",
-  "Customer Relationships": "",
-  "Channels": "",
-  "Customer Segments": "",
-  "Cost Structure": "",
-  "Revenue Streams": ""
-}
-`;
-
-  try {
-    const text = await callGeminiAPI(prompt);
-
-    let bmc;
-    try {
-      bmc = JSON.parse(text);
-    } catch (e) {
-      // ถ้า parse ไม่ได้ ให้ใช้ข้อความจำลอง
-      bmc = {
-        "Key Partners": "ตัวอย่างพันธมิตรหลัก...",
-        "Key Activities": "ตัวอย่างกิจกรรมหลัก...",
-        "Key Resources": "ตัวอย่างทรัพยากรหลัก...",
-        "Value Propositions": "ตัวอย่างคุณค่าเสนอ...",
-        "Customer Relationships": "ตัวอย่างความสัมพันธ์ลูกค้า...",
-        "Channels": "ตัวอย่างช่องทาง...",
-        "Customer Segments": "ตัวอย่างกลุ่มลูกค้า...",
-        "Cost Structure": "ตัวอย่างโครงสร้างต้นทุน...",
-        "Revenue Streams": "ตัวอย่างกระแสรายได้..."
-      };
+    if (!basicInfo) {
+        status.textContent = "กรุณากรอกรายละเอียดธุรกิจก่อนให้ AI ช่วยวิเคราะห์";
+        return;
     }
 
-    // ใส่ลงในช่อง BMC
-    document.getElementById("bmc-key-partners").value = bmc["Key Partners"] || "";
-    document.getElementById("bmc-key-activities").value = bmc["Key Activities"] || "";
-    document.getElementById("bmc-key-resources").value = bmc["Key Resources"] || "";
-    document.getElementById("bmc-value-propositions").value = bmc["Value Propositions"] || "";
-    document.getElementById("bmc-customer-relationships").value = bmc["Customer Relationships"] || "";
-    document.getElementById("bmc-channels").value = bmc["Channels"] || "";
-    document.getElementById("bmc-customer-segments").value = bmc["Customer Segments"] || "";
-    document.getElementById("bmc-cost-structure").value = bmc["Cost Structure"] || "";
-    document.getElementById("bmc-revenue-streams").value = bmc["Revenue Streams"] || "";
+    status.textContent = "กำลังสร้างโมเดลธุรกิจด้วย AI กรุณารอสักครู่...";
 
-    status.textContent = "สร้างโมเดลธุรกิจสำเร็จ สามารถแก้ไขรายละเอียดในแต่ละช่องได้ก่อน Export PDF";
-  } catch (err) {
-    console.error(err);
-    status.textContent = "เกิดข้อผิดพลาดในการเรียกใช้ AI กรุณาลองใหม่อีกครั้ง";
-  }
+    const prompt = `คุณคือผู้เชี่ยวชาญด้าน Business Model Canvas ช่วยออกแบบ BMC ภาษาไทยจากข้อมูลนี้:
+    ชื่อธุรกิจ: ${bizName || "-"}
+    รายละเอียด: ${basicInfo || "-"}
+    
+    คำสั่งสำคัญ: 
+    1. ตอบเป็นภาษาไทยในรูปแบบ JSON Object เท่านั้น
+    2. ห้ามเขียนคำนำหรือคำอธิบายปนมาเด็ดขาด
+    3. ต้องใช้ Key ดังนี้: partners, activities, resources, value, relationships, channels, segments, cost, revenue`;
+
+    try {
+        const text = await callGeminiAPI(prompt);
+        if (!text) throw new Error("ไม่ได้รับข้อมูลจาก AI");
+
+        const jsonMatch = text.match(/\{[\s\S]*\}/); 
+        if (!jsonMatch) throw new Error("AI ตอบกลับในรูปแบบที่ระบบไม่อ่านไม่ได้");
+        
+        const bmc = JSON.parse(jsonMatch[0]);
+
+        const setVal = (id, key) => {
+            const el = document.getElementById(id);
+            if (el) el.value = bmc[key] || "ไม่มีข้อมูล";
+        };
+
+        setVal("bmc-key-partners", "partners");
+        setVal("bmc-key-activities", "activities");
+        setVal("bmc-key-resources", "resources");
+        setVal("bmc-value-propositions", "value");
+        setVal("bmc-customer-relationships", "relationships");
+        setVal("bmc-channels", "channels");
+        setVal("bmc-customer-segments", "segments");
+        setVal("bmc-cost-structure", "cost");
+        setVal("bmc-revenue-streams", "revenue");
+
+        if (document.getElementById("display-bizName")) document.getElementById("display-bizName").value = bizName;
+        if (document.getElementById("display-bizOwner")) document.getElementById("display-bizOwner").value = bizOwner;
+        if (document.getElementById("bizDate")) document.getElementById("bizDate").valueAsDate = new Date();
+
+        status.textContent = "สร้างโมเดลธุรกิจสำเร็จ!";
+        document.querySelector(".bmc-canvas")?.scrollIntoView({ behavior: 'smooth' });
+
+    } catch (err) {
+        console.error(err);
+        status.textContent = "เกิดข้อผิดพลาด: " + err.message;
+    }
+}
+
+async function exportImage() {
+    const element = document.querySelector(".bmc-canvas");
+    const bizName = document.getElementById("display-bizName")?.value || "Business-Model";
+    const status = document.getElementById("statusMessage");
+
+    if (!element) return;
+    if (status) status.textContent = "กำลังสร้างไฟล์รูปภาพ...";
+
+    // 1. จัดการช่อง Input/Textarea ให้เป็นข้อความธรรมดาชั่วคราวเพื่อให้ภาพชัดเจน
+    const allInputs = element.querySelectorAll('input, textarea');
+    const tempDivs = [];
+
+    allInputs.forEach(input => {
+        const replacement = document.createElement('div');
+        replacement.innerText = input.value;
+        replacement.style.cssText = `
+            font-size: 14px; 
+            white-space: pre-wrap; 
+            width: 100%; 
+            color: #000;
+            padding: 2px;
+        `;
+        replacement.className = "temp-image-text";
+        input.style.display = 'none';
+        input.parentNode.insertBefore(replacement, input);
+        tempDivs.push({ input, replacement });
+    });
+
+    try {
+        // 2. แปลง Element เป็น Canvas
+        const canvas = await html2canvas(element, {
+            scale: 2, // เพิ่มความชัดเป็น 2 เท่า
+            useCORS: true,
+            backgroundColor: "#f3f6f6" // สีพื้นหลังตาม CSS ของคุณ
+        });
+
+        // 3. ดาวน์โหลดเป็นไฟล์ PNG
+        const link = document.createElement('a');
+        link.download = `BMC-${bizName}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+
+        if (status) status.textContent = "บันทึกรูปภาพสำเร็จ!";
+    } catch (err) {
+        console.error(err);
+        if (status) status.textContent = "เกิดข้อผิดพลาดในการสร้างรูปภาพ";
+    } finally {
+        // 4. คืนค่าช่องกรอกกลับมาเหมือนเดิม
+        tempDivs.forEach(item => {
+            item.replacement.remove();
+            item.input.style.display = '';
+        });
+    }
 }
 
 async function generateSuggestions() {
-  const bizName = document.getElementById("bizName").value.trim();
-  const basicInfo = document.getElementById("basicInfo").value.trim();
-  const suggestionBox = document.getElementById("suggestionResult");
-  const status = document.getElementById("statusMessage");
+    const basicInfo = document.getElementById("basicInfo").value.trim();
+    const suggestionResult = document.getElementById("suggestionResult");
+    const status = document.getElementById("statusMessage");
 
-  status.textContent = "กำลังสร้าง Smart Suggestion สำหรับผู้ประกอบการในชุมชน...";
-
-  const prompt = `
-คุณคือที่ปรึกษาธุรกิจชุมชน ช่วยให้คำแนะนำเชิงกลยุทธ์แบบเข้าใจง่าย
-สำหรับธุรกิจต่อไปนี้:
-
-ชื่อธุรกิจ: ${bizName || "-"}
-รายละเอียดเบื้องต้น:
-${basicInfo || "-"}
-
-ให้ตอบเป็นภาษาไทย แบ่งหัวข้อ:
-1) โอกาสในชุมชน
-2) การพัฒนาสินค้า/บริการ
-3) ช่องทางการตลาดที่เหมาะสม
-4) การสร้างเครือข่าย/พันธมิตร
-5) ข้อเสนอแนะเพิ่มเติมสำหรับผู้ประกอบการมือใหม่
-`;
-
-  try {
-    const text = await callGeminiAPI(prompt);
-    suggestionBox.value = text || "ยังไม่มีคำแนะนำจากระบบ";
-    status.textContent = "สร้าง Smart Suggestion สำเร็จ สามารถปรับแก้ข้อความได้ตามต้องการ";
-  } catch (err) {
-    console.error(err);
-    suggestionBox.value = "เกิดข้อผิดพลาดในการสร้างคำแนะนำ กรุณาลองใหม่อีกครั้ง";
-    status.textContent = "เกิดข้อผิดพลาดในการสร้าง Smart Suggestion";
-  }
-}
-
-async function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit: "mm", format: "a4" });
-
-  const bizName = document.getElementById("bizName").value.trim();
-  const bizOwner = document.getElementById("bizOwner").value.trim();
-
-  let y = 12;
-
-  pdf.setFontSize(14);
-  pdf.text("Business Model Canvas", 10, y);
-  y += 8;
-
-  pdf.setFontSize(11);
-  pdf.text(`ชื่อธุรกิจ: ${bizName || "-"}`, 10, y);
-  y += 6;
-  pdf.text(`ช่างเอนกประสงค์/ผู้รับผิดชอบ: ${bizOwner || "-"}`, 10, y);
-  y += 8;
-
-  const fields = [
-    ["Key Partners", "bmc-key-partners"],
-    ["Key Activities", "bmc-key-activities"],
-    ["Key Resources", "bmc-key-resources"],
-    ["Value Propositions", "bmc-value-propositions"],
-    ["Customer Relationships", "bmc-customer-relationships"],
-    ["Channels", "bmc-channels"],
-    ["Customer Segments", "bmc-customer-segments"],
-    ["Cost Structure", "bmc-cost-structure"],
-    ["Revenue Streams", "bmc-revenue-streams"]
-  ];
-
-  pdf.setFontSize(10);
-
-  fields.forEach(([label, id]) => {
-    const value = document.getElementById(id).value || "";
-    const lines = pdf.splitTextToSize(`${label}: ${value}`, 190);
-    if (y + lines.length * 5 > 280) {
-      pdf.addPage();
-      y = 12;
+    if (!basicInfo) {
+        alert("กรุณากรอกรายละเอียดธุรกิจในช่องด้านบนก่อน เพื่อให้ AI วิเคราะห์คำแนะนำครับ");
+        return;
     }
-    pdf.text(lines, 10, y);
-    y += lines.length * 5 + 3;
-  });
 
-  pdf.save("business-model-canvas.pdf");
+    status.textContent = "กำลังวิเคราะห์ข้อเสนอแนะอัจฉริยะ...";
+    suggestionResult.value = "AI กำลังประมวลผลคำแนะนำที่เหมาะสมที่สุดสำหรับคุณ...";
+
+    const prompt = `คุณคือที่ปรึกษาธุรกิจมืออาชีพ โปรดวิเคราะห์ธุรกิจนี้: "${basicInfo}" 
+    แล้วให้คำแนะนำ 4 หัวข้อ ดังนี้:
+    1. กลยุทธ์การตลาดในชุมชนและโรงงาน
+    2. แนวทางการลดต้นทุน
+    3. การเพิ่มมูลค่าด้วยทักษะฝีมือแรงงาน
+    4. โอกาสในการขยายตัวในอนาคต
+    (ตอบเป็นภาษาไทยแบบข้อๆ ที่นำไปใช้ได้จริง)`;
+
+    try {
+        const text = await callGeminiAPI(prompt);
+        if (text) {
+            suggestionResult.value = text;
+            status.textContent = "วิเคราะห์คำแนะนำสำเร็จ!";
+            // สกอร์หน้าจอลงมาที่ช่องคำแนะนำ
+            suggestionResult.scrollIntoView({ behavior: 'smooth' });
+        }
+    } catch (err) {
+        console.error(err);
+        suggestionResult.value = "ไม่สามารถสร้างคำแนะนำได้ในขณะนี้: " + err.message;
+        status.textContent = "เกิดข้อผิดพลาดในการดึงข้อมูลคำแนะนำ";
+    }
 }

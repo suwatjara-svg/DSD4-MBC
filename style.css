@@ -63,7 +63,7 @@ body {
 
 /* Main layout */
 .main-container {
-  max-width: 1100px;
+  max-width: 297mm;
   margin: 24px auto 40px;
   padding: 0 16px;
 }
@@ -201,14 +201,20 @@ textarea:focus {
   min-height: 120px;
 }
 
-/* BMC Grid */
+/* เพิ่มส่วนนี้เข้าไปครับ */
 .bmc-canvas {
-  background: #fff;
-  border: 2px solid #ccc;
-  padding: 20px;
-  border-radius: 12px;
-  margin-top: 20px;
-  font-family: "Segoe UI", sans-serif;
+    width: 100%; /* เปลี่ยนจาก 297mm เพื่อให้ดูในคอมได้พอดี */
+    max-width: 1100px; /* ให้กว้างเท่ากับ Header */
+    min-height: 210mm; 
+    padding: 20px; 
+    margin: 20px auto;
+    background: #f3f6f6; /* ใช้สีขาวสะอาดตาสำหรับตาราง */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
 }
 
 .bmc-title {
@@ -248,58 +254,121 @@ textarea:focus {
   width: 100%;
 }
 
-.bmc-grid {
-  display: grid;
-  /* กำหนดสัดส่วน 5 คอลัมน์ เพื่อให้ได้เลย์เอาต์ตามรูปภาพ */
-  grid-template-columns: repeat(5, 1fr);
-  /* กำหนดแถว: แถวบน 2 ส่วน แถวล่าง 1 ส่วน */
-  grid-template-rows: 300px 300px 200px 
-  gap: 0; /* แนะนำให้ใช้ 0 แล้วใช้ border แทนจะเหมือนในภาพมากกว่า */
-  border: 1.5px solid #333;
+/* ปุ่มลอยด้านข้างซ้าย */
+.side-controls {
+    position: fixed;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 1000;
 }
 
+.side-controls .btn {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    white-space: nowrap;
+    padding: 12px 20px;
+}
+
+/* ปรับแต่ง Footer Profile */
+.profile-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.profile-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    object-fit: cover;
+}
+
+.profile-info {
+    text-align: left;
+    line-height: 1.4;
+}
+
+/* --- แก้ไขปัญหา PDF ให้สมบูรณ์แบบ --- */
+@media print {
+    @page {
+        size: A4 landscape; /* บังคับพิมพ์เป็นแนวนอน */
+        margin: 5mm;
+    }
+
+    body {
+        background: none !important;
+    }
+
+    .bmc-canvas {
+        width: 100% !important;
+        max-width: none !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .bmc-box textarea {
+        overflow: visible !important;
+        height: auto !important;
+        font-size: 10px !important; /* ขนาดตัวอักษรใน PDF ตามที่คุณต้องการ */
+        line-height: 1.2;
+        border: none !important;
+    }
+
+    /* ซ่อนส่วนที่ไม่เกี่ยวข้อง */
+    .side-controls, .main-header, .card:not(.bmc-canvas), .main-footer, .button-row {
+        display: none !important;
+    }
+}
+
+/* จัด Layout ตารางแบบ 3 แถว */
+.bmc-grid {
+    flex: 1; /* บีบตารางให้ขยายเต็มพื้นที่ที่เหลือในหน้าเดียวพอดี */
+    display: grid;
+    gap: 0; 
+    border: 2px solid #000;
+    /* ล็อกตำแหน่งช่องตามมาตรฐาน BMC */
+    grid-template-areas:
+        "partners activities value relationships segments"
+        "partners resources  value channels      segments"
+        "cost     cost       revenue revenue     revenue";
+    grid-template-columns: 1fr 1fr 1.2fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 0.7fr;
+}
+
+/* ตั้งค่าช่องย่อย (Box) */
 .bmc-box {
-  background: #fff;
-  border: 1px solid #000; /* เส้นขอบดำตัดกันชัดเจนแบบในรูป */
-  padding: 15px; /* เพิ่มพื้นที่ภายในให้ดูโปร่งขึ้น */
-  display: flex;
-  flex-direction: column;
-}
-
-/* กำหนดตำแหน่งแต่ละช่องตามมาตรฐาน BMC */
-.bmc-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  /* ปรับความสูง: แถวบนและกลางแถวละ 350px (รวม 700px) และแถวล่าง 250px */
-  grid-template-rows: 350px 350px 250px; 
-  gap: 0; 
-  border: 2px solid #000; /* เส้นขอบนอกหนาขึ้นตามรูปภาพ */
-  grid-template-areas:
-    "partners activities value relationships segments"
-    "partners resources  value channels      segments"
-    "cost     cost       revenue revenue     revenue";
-}
-
-/* ปรับให้ Textarea ขยายเต็มพื้นที่ความสูงที่ตั้งไว้ */
-.bmc-box textarea {
-  flex: 1; 
-  width: 100%;
-  border: none;
-  outline: none;
-  resize: none;
-  font-size: 1rem;
-  line-height: 1.6;
-  background: transparent;
-  padding: 5px 0;
+    border: 1px solid #000;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
 }
 
 .bmc-box h3 {
-  font-size: 0.95rem; /* ขนาดตัวอักษรหัวข้อช่อง */
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #000; /* เปลี่ยนเป็นสีดำตามต้นฉบับ */
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
+    font-size: 0.85rem; /* ลดขนาดหัวข้อลงเล็กน้อย */
+    margin: 0 0 5px 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 3px;
+}
+
+/* ปรับขนาดตัวอักษรเพื่อให้จุข้อมูลได้ครบในหน้าเดียว */
+.bmc-box textarea {
+    flex: 1;
+    width: 100%;
+    border: none;
+    resize: none;
+    font-size: 13px; /* ขนาดที่แนะนำสำหรับ A4 */
+    line-height: 1.4;
+    outline: none;
 }
 
 .bmc-footer {
@@ -341,4 +410,18 @@ textarea:focus {
   .system-name {
     font-size: 0.8rem;
   }
+}
+
+/* สไตล์สำหรับข้อความชั่วคราวตอน Export PDF */
+.pdf-temp-text {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    padding: 2px;
+    min-height: 20px;
+}
+
+/* ปรับให้ textarea ในหน้าจอปกติเห็นขอบชัดเจนแต่ใน PDF ไม่เอาขอบ */
+.bmc-box textarea {
+    border: none !important;
+    background: transparent !important;
 }
